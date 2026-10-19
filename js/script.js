@@ -5,13 +5,14 @@ import { initializePageSettings } from './page-settings.js';
 const $ = window.jQuery;
 
 $(function () {
-    initializePageSettings(paginate);
+    const refreshPageLayout = initializePageSettings(paginate);
     const navigation = initializePageNavigation();
 
     paginate();
     navigation.restorePage();
     navigation.updateNav();
     $(window).on('load', () => {
+        refreshPageLayout();
         navigation.restorePage();
         navigation.updateNav();
     });

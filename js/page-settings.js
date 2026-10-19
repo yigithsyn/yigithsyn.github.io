@@ -56,6 +56,19 @@ export function initializePageSettings(paginate) {
     }
     localStorage.setItem(orientationStorageKey, viewportOrientation);
     if (!manualPageSize) setPageSizeForViewport();
+
+    function refreshPageLayout() {
+        const nextViewportOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+        if (nextViewportOrientation !== viewportOrientation) {
+            viewportOrientation = nextViewportOrientation;
+            localStorage.setItem(orientationStorageKey, viewportOrientation);
+            $pageOrientation.val(viewportOrientation);
+            localStorage.setItem('page-orientation', viewportOrientation);
+        }
+        if (!manualPageSize) setPageSizeForViewport();
+        paginate();
+    }
+
     let viewportWidth = window.innerWidth;
     let viewportHeight = window.innerHeight;
 
@@ -79,4 +92,6 @@ export function initializePageSettings(paginate) {
     });
 
     $('#print').on('click', () => window.print());
+
+    return refreshPageLayout;
 }
