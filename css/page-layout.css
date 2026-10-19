@@ -1,0 +1,51 @@
+:root {
+    --page-w: 210mm;
+    --page-h: 297mm;
+    --page-pad: 15mm;
+}
+
+body {
+    background: #6c757d;
+}
+
+#toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#pages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10mm;
+    padding: 10mm 0;
+}
+
+.page {
+    width: var(--page-w);
+    height: var(--page-h);
+    padding: var(--page-pad);
+    background: #fff;
+    box-shadow: 0 0 8px rgba(0, 0, 0, .5);
+    position: relative;
+    overflow: hidden;
+    flex: none;
+}
+
+.page-content {
+    height: 100%;
+    overflow: hidden;
+}
+
+.page-number {
+    position: absolute;
+    bottom: 5mm;
+    right: 8mm;
+    font-size: 10pt;
+    color: #888;
+}
+
+#source {
+    display: none;
+}

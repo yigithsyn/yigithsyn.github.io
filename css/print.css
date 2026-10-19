@@ -1,0 +1,27 @@
+@media print {
+    #page-nav {
+        display: none;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    #toolbar {
+        display: none;
+    }
+
+    #pages {
+        display: block;
+        padding: 0;
+    }
+
+    .page {
+        box-shadow: none;
+        break-after: page;
+    }
+}
+
+@page {
+    margin: 0;
+}
