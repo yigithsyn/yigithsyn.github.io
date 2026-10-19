@@ -1,6 +1,6 @@
 const $ = window.jQuery;
 
-const SIZES = { A4: ['210mm', '297mm'], A5: ['148mm', '210mm'], A6: ['105mm', '148mm'] };
+export const PAGE_SIZES = { A4: [210, 297], A5: [148, 210], A6: [105, 148] };
 
 function newPage($pages) {
     const $content = $('<div class="page-content"></div>');
@@ -10,7 +10,7 @@ function newPage($pages) {
 }
 
 export function paginate() {
-    let [w, h] = SIZES[$('#page-size').val()];
+    let [w, h] = PAGE_SIZES[$('#page-size').val()].map(size => size + 'mm');
     if ($('#page-orientation').val() === 'landscape') [w, h] = [h, w];
     $('#page-style').remove();
     $('<style id="page-style"></style>').text('@page { size: ' + w + ' ' + h + '; margin: 0; }').appendTo('head');
