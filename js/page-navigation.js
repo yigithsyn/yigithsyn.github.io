@@ -5,11 +5,13 @@ export function initializePageNavigation() {
 
     function currentPage() {
         const pages = $('#pages .page').toArray();
+        // Araç çubuğunun altındaki görünür ilk sayfayı geçerli sayfa kabul et.
         const i = pages.findIndex(p => p.getBoundingClientRect().bottom > barH() + 50);
         return i === -1 ? 0 : i;
     }
 
     function restorePage() {
+        // En son görüntülenen sayfayı, sabit araç çubuğunun altında kalmayacak şekilde aç.
         const page = $('#pages .page')[+localStorage.getItem('current-page') || 0];
         if (page) window.scrollTo({ top: page.getBoundingClientRect().top + scrollY - barH() - 10 });
     }
@@ -27,6 +29,7 @@ export function initializePageNavigation() {
         if (!pages.length) return;
         const toolbarHeight = barH();
         const tops = pages.map(page => page.getBoundingClientRect().top - toolbarHeight);
+        // Kısmen görünür sayfayı hesaba katarak komşu sayfanın üst hizasına kaydır.
         let cur = tops.findIndex(top => top > -5);
         if (cur === -1) cur = pages.length - 1;
         let target = dir > 0 ? (tops[cur] > 15 ? cur : cur + 1) : cur - 1;
@@ -35,6 +38,7 @@ export function initializePageNavigation() {
         window.scrollBy({ top: tops[target] - 10, behavior: 'smooth' });
     }
 
+    // Tarayıcının otomatik kaydırma geri yüklemesiyle kayıtlı sayfa konumu çakışmasın.
     history.scrollRestoration = 'manual';
     $('#page-prev').on('click', () => goPage(-1));
     $('#page-next').on('click', () => goPage(1));
@@ -42,6 +46,7 @@ export function initializePageNavigation() {
     $(window).on('scroll', () => {
         updateNav();
         clearTimeout(saveTimer);
+        // Hızlı kaydırmalarda her piksel değişiminde yazmayı önlemek için kaydı geciktir.
         saveTimer = setTimeout(() => localStorage.setItem('current-page', currentPage()), 150);
     });
 

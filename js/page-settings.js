@@ -4,6 +4,7 @@ const $ = window.jQuery;
 
 export function initializePageSettings(paginate) {
     const $pageOrientation = $('#page-orientation');
+    // Boyut seçimini, kullanıcı elle değiştirdiği pencere ölçüsü boyunca koru.
     const orientationStorageKey = 'auto-page-orientation-ratio';
     const manualSizeKey = 'manual-page-size';
     const manualWidthKey = 'manual-page-size-width';
@@ -20,6 +21,7 @@ export function initializePageSettings(paginate) {
 
     function setPageSizeForViewport() {
         const sizes = Object.keys(PAGE_SIZES);
+        // Görünüm alanına sığan en büyük kağıdı seç (boyutlar CSS'in 96 DPI varsayımına çevrilir).
         const nextSize = sizes.find(size => {
             let [width, height] = PAGE_SIZES[size];
             if ($pageOrientation.val() === 'landscape') [width, height] = [height, width];
@@ -33,6 +35,7 @@ export function initializePageSettings(paginate) {
     }
 
     $('#page-size, #page-orientation').each(function () {
+        // Önce önceki tercihleri yükle, ardından seçim değişikliklerini sakla ve yeniden sayfala.
         const saved = localStorage.getItem(this.id);
         if (saved) $(this).val(saved);
     }).on('change', function (event) {
@@ -58,6 +61,7 @@ export function initializePageSettings(paginate) {
     if (!manualPageSize) setPageSizeForViewport();
 
     function refreshPageLayout() {
+        // Başlangıç yüklemesi tamamlanınca yönü ve otomatik boyutu güncel görünümle eşleştir.
         const nextViewportOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
         if (nextViewportOrientation !== viewportOrientation) {
             viewportOrientation = nextViewportOrientation;
@@ -76,6 +80,7 @@ export function initializePageSettings(paginate) {
         if (window.innerWidth === viewportWidth && window.innerHeight === viewportHeight) return;
         viewportWidth = window.innerWidth;
         viewportHeight = window.innerHeight;
+        // Pencere boyutu değişince eski manuel seçim geçerliliğini kaybeder; otomatiğe dön.
         manualPageSize = false;
         localStorage.removeItem(manualSizeKey);
         localStorage.removeItem(manualWidthKey);

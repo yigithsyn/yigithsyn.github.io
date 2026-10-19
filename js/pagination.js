@@ -1,5 +1,6 @@
 const $ = window.jQuery;
 
+// Boyutlar milimetre cinsindedir; CSS ve yazdırma ölçüleri bu tablodan türetilir.
 export const PAGE_SIZES = { A4: [210, 297], A5: [148, 210], A6: [105, 148] };
 
 function newPage($pages) {
@@ -10,6 +11,7 @@ function newPage($pages) {
 }
 
 export function paginate() {
+    // Ekran ölçülerini ve @page kuralını seçili kağıt boyutu/yönüyle eşleştir.
     let [w, h] = PAGE_SIZES[$('#page-size').val()].map(size => size + 'mm');
     if ($('#page-orientation').val() === 'landscape') [w, h] = [h, w];
     $('#page-style').remove();
@@ -20,6 +22,7 @@ export function paginate() {
     const $pages = $('#pages').empty();
     let $content = newPage($pages);
 
+    // Sayfaya eklenen içeriğin kullanılabilir yüksekliği aşıp aşmadığını ölç.
     const overflows = () => $content[0].scrollHeight > $content[0].clientHeight;
 
     $('#source > section').each(function () {
@@ -30,6 +33,8 @@ export function paginate() {
         for (let i = 0; i < children.length;) {
             const block = [children[i++]];
             if (/^H[1-6]$/.test(block[0].tagName)) {
+                // Başlıkları takip eden başlıklarla ve ilk içerik öğesiyle birlikte tutarak
+                // başlığın sayfa sonunda tek başına kalmasını önle.
                 while (i < children.length && /^H[1-6]$/.test(children[i].tagName)) {
                     block.push(children[i++]);
                 }
@@ -51,6 +56,7 @@ export function paginate() {
             shellChildren += block.length;
 
             if (overflows()) {
+                // Taşan bloğu eski sayfadan çıkarıp yeni sayfanın başına taşı.
                 block.forEach(child => $(child).detach());
                 shellChildren -= block.length;
 
@@ -66,6 +72,7 @@ export function paginate() {
     });
 
     $pages.children('.page').each(function (i) {
+        // Numaraları yeniden oluşturulan sayfa sırasına göre ata.
         $(this).append('<div class="page-number">' + (i + 1) + '</div>');
     });
 }

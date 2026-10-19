@@ -1,4 +1,5 @@
 @media print {
+    /* Yazdırma çıktısında yalnızca rapor sayfaları görünür; ekran denetimleri gizlenir. */
     #page-nav {
         display: none;
     }
@@ -12,16 +13,19 @@
     }
 
     #pages {
+        /* Ekrandaki flex aralığını ve kenar boşluklarını yazdırma düzeninde kaldır. */
         display: block;
         padding: 0;
     }
 
     .page {
+        /* Gölge ekran içindir; her sayfayı yazıcıda ayrı kağıt olarak başlat. */
         box-shadow: none;
         break-after: page;
     }
 }
 
 @page {
+    /* Kağıt kenar boşlukları JS'in oluşturduğu sayfa ölçüsünde sıfırlanır. */
     margin: 0;
 }

@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Report</title>
+    <!-- Framework ve simgeler; proje stilleri, sayfa yapısı ve yazdırma kurallarından önce yüklenir. -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.2.4/svg.min.js" defer></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -14,6 +15,7 @@
 </head>
 
 <body>
+    <!-- Sayfa ölçüsü ve yönü kullanıcı tarafından değiştirilebilir; seçimler tarayıcıda saklanır. -->
     <nav id="toolbar" class="navbar bg-body fg-body border-bottom px-3" data-bs-theme="light">
         <span class="navbar-brand mb-0 h1">Report</span>
         <div class="d-flex align-items-center gap-2">
@@ -32,6 +34,7 @@
         </div>
     </nav>
 
+    <!-- Gezinme denetimleri ekranda sabit kalır; JavaScript etkin sayfaya göre günceller. -->
     <div id="page-nav" role="group" aria-label="Sayfa geçişi">
         <button id="page-prev" type="button" class="btn-solid theme-secondary btn-icon" title="Önceki sayfa" aria-label="Önceki sayfa">
             <i class="bi bi-chevron-up" aria-hidden="true"></i>
@@ -42,15 +45,17 @@
         </button>
     </div>
 
+    <!-- Sayfalama sonucu oluşturulan sayfalar bu alana eklenir. -->
     <main id="pages"></main>
 
-    <!-- Source sections; paginated into pages by the script below. -->
+    <!-- Kaynak içerik gizli tutulur ve JavaScript tarafından ölçülüp sayfalara kopyalanır. -->
     <div id="source">
         <section>
         
         </section>
     </div>
 
+    <!-- jQuery, sayfa modüllerinden önce yüklenmelidir; script.js uygulamanın başlangıç noktasıdır. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-1a/pXj49ZQ1aHEmrJ+gMw1otqoVsYwlEnlD8mIfY2TV03r20Y0CN7uqx1tQogjPL" crossorigin="anonymous"></script>
     <script type="module" src="js/script.js"></script>
