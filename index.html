@@ -21,6 +21,16 @@
             <span>Menüyü gizle</span>
         </button>
         <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-1" role="group" aria-label="Çalışma alanı yakınlaştırma">
+                <button id="workspace-zoom-out" type="button" class="btn-outline btn-sm theme-secondary" title="Uzaklaştır" aria-label="Çalışma alanını uzaklaştır">
+                    <i class="bi bi-zoom-out" aria-hidden="true"></i>
+                </button>
+                <output id="workspace-zoom-level" aria-live="polite" aria-atomic="true">100%</output>
+                <button id="workspace-zoom-in" type="button" class="btn-outline btn-sm theme-secondary" title="Yakınlaştır" aria-label="Çalışma alanını yakınlaştır">
+                    <i class="bi bi-zoom-in" aria-hidden="true"></i>
+                </button>
+                <button id="workspace-zoom-reset" type="button" class="btn-outline btn-sm theme-secondary" title="Ölçeği sıfırla" aria-label="Çalışma alanı ölçeğini yüzde 100 yap">Sıfırla</button>
+            </div>
             <button id="print" class="btn-outline btn-sm theme-secondary">Print</button>
         </div>
     </nav>

@@ -3,11 +3,15 @@ import { initializeImageUpload } from './image-upload.js';
 const $ = window.jQuery;
 const API = location.port === '3000' ? '' : 'http://localhost:3000';
 let selectionRequest = 0;
+let workspaceZoom = 1;
 
 $(function () {
     loadContentFiles();
     initializeImageUpload();
     $('#print').on('click', () => window.print());
+    $('#workspace-zoom-out').on('click', () => setWorkspaceZoom(workspaceZoom - 0.1));
+    $('#workspace-zoom-in').on('click', () => setWorkspaceZoom(workspaceZoom + 0.1));
+    $('#workspace-zoom-reset').on('click', () => setWorkspaceZoom(1));
     $('#drawer-toggle').on('click', function () {
         const isExpanded = $(this).attr('aria-expanded') === 'true';
         $(this).attr('aria-expanded', String(!isExpanded));
@@ -16,6 +20,15 @@ $(function () {
         $('#workspace-layout').toggleClass('drawer-closed', isExpanded);
     });
 });
+
+function setWorkspaceZoom(zoom) {
+    workspaceZoom = Math.min(2, Math.max(0.5, Math.round(zoom * 10) / 10));
+    document.getElementById('workspace-layout').style.zoom = String(workspaceZoom);
+    $('#workspace-zoom-level').text(`${Math.round(workspaceZoom * 100)}%`);
+    $('#workspace-zoom-out').prop('disabled', workspaceZoom <= 0.5);
+    $('#workspace-zoom-in').prop('disabled', workspaceZoom >= 2);
+    $('#workspace-zoom-reset').prop('disabled', workspaceZoom === 1);
+}
 
 async function loadContentFiles() {
     const $list = $('#content-list').empty();
