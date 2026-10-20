@@ -2,13 +2,14 @@ const express = require('express');
 const multer = require('multer');
 const path = require('node:path');
 const fs = require('node:fs');
+const os = require('node:os');
 const crypto = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 
 const ROOT = path.join(__dirname, '..');
 const UPLOAD_DIR = path.join(ROOT, 'img', 'upload');
 const PORT = process.env.PORT || 3000;
-const MAX_SIZE = 10 * 1024 * 1024;
+const MAX_SIZE = 30 * 1024 * 1024;
 const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.avif']);
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -32,6 +33,7 @@ const insert = db.prepare(`
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 const getById = db.prepare('SELECT * FROM uploads WHERE id = ?');
+const remove = db.prepare('DELETE FROM uploads WHERE id = ?');
 const list = db.prepare('SELECT * FROM uploads ORDER BY uploaded_at DESC');
 
 const safeName = (name) =>
@@ -39,8 +41,22 @@ const safeName = (name) =>
     .replace(/[^\p{L}\p{N}._-]+/gu, '_')
     .slice(-100);
 
+// Dosya önce çalışma alanı dışına yazılır; aksi halde Live Preview gibi izleyiciler
+// yükleme sürerken sayfayı yenileyip isteği keser.
+const STAGING_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'defter-upload-'));
+
+const moveFile = (from, to) => {
+  try {
+    fs.renameSync(from, to);
+  } catch (err) {
+    if (err.code !== 'EXDEV') throw err;
+    fs.copyFileSync(from, to);
+    fs.unlinkSync(from);
+  }
+};
+
 const storage = multer.diskStorage({
-  destination: UPLOAD_DIR,
+  destination: STAGING_DIR,
   filename(req, file, cb) {
     file.uid = crypto.randomUUID();
     file.cleanName = safeName(file.originalname);
@@ -65,6 +81,8 @@ const app = express();
 // Arayüz farklı bir kaynaktan (ör. Live Server) açıldığında da API'ye erişilebilsin.
 app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, DELETE');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
 
@@ -86,10 +104,13 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
     uploaded_at: new Date().toISOString(),
     ip: req.ip,
   };
+  const finalPath = path.join(UPLOAD_DIR, f.filename);
   try {
+    moveFile(f.path, finalPath);
     insert.run(...Object.values(record));
   } catch (err) {
     fs.unlink(f.path, () => {});
+    fs.unlink(finalPath, () => {});
     throw err;
   }
   res.status(201).json({ ...record, url: `/${relPath}` });
@@ -101,7 +122,14 @@ app.get('/api/uploads/:id', (req, res) => {
   row ? res.json(row) : res.status(404).json({ error: 'Bulunamadı.' });
 });
 
+// Yalnızca veritabanı kaydı silinir; dosya diskte kalır.
+app.delete('/api/uploads/:id', (req, res) => {
+  const result = remove.run(req.params.id);
+  result.changes ? res.status(204).end() : res.status(404).json({ error: 'Bulunamadı.' });
+});
+
 app.use((err, req, res, next) => {
+  if (req.aborted || res.destroyed) return;
   if (req.file) fs.unlink(req.file.path, () => {});
   const status = err instanceof multer.MulterError ? (err.code === 'LIMIT_FILE_SIZE' ? 413 : 400)
     : err.message?.startsWith('Sadece') ? 400 : 500;
