@@ -12,17 +12,33 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('workspace-zoom-in').addEventListener('click', () => setWorkspaceZoom(workspaceZoom + 0.1));
     document.getElementById('workspace-zoom-reset').addEventListener('click', () => setWorkspaceZoom(1));
     document.getElementById('drawer-toggle').addEventListener('click', (event) => {
-        const button = event.currentTarget;
-        const isExpanded = button.getAttribute('aria-expanded') === 'true';
-        button.setAttribute('aria-expanded', String(!isExpanded));
-        button.querySelector('span').textContent = isExpanded ? 'Menüyü göster' : 'Menüyü gizle';
-        document.getElementById('drawer').hidden = isExpanded;
-        document.getElementById('workspace-layout').classList.toggle('drawer-closed', isExpanded);
+        const isExpanded = event.currentTarget.getAttribute('aria-expanded') === 'true';
+        setDrawerOpen(!isExpanded);
     });
+    setWorkspaceZoom(Number(readStore('zoom')) || 1);
+    setDrawerOpen(readStore('drawerOpen') !== 'false', false);
 });
+
+function readStore(key) {
+    try { return localStorage.getItem('defter.' + key); } catch { return null; }
+}
+
+function writeStore(key, value) {
+    try { localStorage.setItem('defter.' + key, String(value)); } catch { /* ignore */ }
+}
+
+function setDrawerOpen(open, persist = true) {
+    const button = document.getElementById('drawer-toggle');
+    button.setAttribute('aria-expanded', String(open));
+    button.querySelector('span').textContent = open ? 'Menüyü gizle' : 'Menüyü göster';
+    document.getElementById('drawer').hidden = !open;
+    document.getElementById('workspace-layout').classList.toggle('drawer-closed', !open);
+    if (persist) writeStore('drawerOpen', open);
+}
 
 function setWorkspaceZoom(zoom) {
     workspaceZoom = Math.min(2, Math.max(0.5, Math.round(zoom * 10) / 10));
+    writeStore('zoom', workspaceZoom);
     document.getElementById('workspace-layout').style.zoom = String(workspaceZoom);
     document.getElementById('workspace-zoom-level').textContent = `${Math.round(workspaceZoom * 100)}%`;
     document.getElementById('workspace-zoom-out').disabled = workspaceZoom <= 0.5;
@@ -53,6 +69,8 @@ async function loadContentFiles() {
 
         status.replaceChildren();
         status.hidden = true;
+        const savedFilename = readStore('file');
+        const initialIndex = Math.max(0, files.findIndex(file => file.filename === savedFilename));
         files.forEach((file, index) => {
             const { filename } = file;
             const title = new DOMParser()
@@ -69,7 +87,7 @@ async function loadContentFiles() {
             button.addEventListener('click', () => loadContentFile(filename, button));
             item.append(button);
             list.append(item);
-            if (index === 0) loadContentFile(filename, button);
+            if (index === initialIndex) loadContentFile(filename, button);
         });
     } catch (error) {
         status.textContent = error.message === 'Failed to fetch'
@@ -80,6 +98,7 @@ async function loadContentFiles() {
 
 async function loadContentFile(filename, button) {
     const request = ++selectionRequest;
+    writeStore('file', filename);
     document.querySelectorAll('#content-list .drawer-file').forEach(fileButton => fileButton.removeAttribute('aria-current'));
     button.setAttribute('aria-current', 'page');
     const content = document.getElementById('content');
