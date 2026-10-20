@@ -1,8 +1,4 @@
 :root {
-    /* JavaScript seçili kağıt ölçüsünü günceller; kenar boşluğu tüm sayfalarda ortak kalır. */
-    --page-w: 210mm;
-    --page-h: 297mm;
-    --page-pad: 15mm;
     --ui-accent: #e58a35;
     --ui-accent-dark: #b95f16;
     --ui-accent-soft: #fff2e5;
@@ -97,47 +93,34 @@ body {
     border-color: #f0c28f;
 }
 
-#pages {
-    /* Sayfaları dikey, ortalanmış bir yığın olarak ekranda göster. */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10mm;
-    padding: 10mm 0;
-}
-
-.page {
-    /* Her çıktı sayfasını sabit kağıt ölçülerinde tut; taşan içerik kırpılır. */
-    width: var(--page-w);
-    height: var(--page-h);
-    padding: var(--page-pad);
+#content {
+    /* İçerik tek, kesintisiz bir sütunda akar; genişlik ekrana göre uyum sağlar. */
+    width: min(100% - 2rem, 60rem);
+    margin: clamp(.75rem, 3vw, 2rem) auto;
+    padding: clamp(1rem, 4vw, 3rem);
     background: #fff;
-    border: 1px solid rgb(210 218 233 / .7);
-    border-radius: 2px;
+    border-radius: 4px;
     box-shadow: 0 14px 38px rgb(47 60 91 / .13), 0 2px 8px rgb(47 60 91 / .07);
-    position: relative;
-    overflow: hidden;
-    flex: none;
+    overflow-wrap: anywhere;
 }
 
-.page-content {
-    /* Sayfalanan içeriği sayfanın iç kullanılabilir alanıyla sınırla. */
-    height: 100%;
-    overflow: hidden;
+#content img,
+#content video,
+#content svg,
+#content canvas {
+    max-width: 100%;
+    height: auto;
 }
 
-.page-number {
-    /* Sayfa numarasını içerik akışından bağımsız olarak alt köşeye yerleştir. */
-    position: absolute;
-    bottom: 5mm;
-    right: 8mm;
-    font-size: 10pt;
-    color: #888;
+#content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
-#source {
-    /* Kaynak içerik yalnızca sayfalama sırasında kullanılır, doğrudan gösterilmez. */
-    display: none;
+#content pre {
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 @media (max-width: 640px) {

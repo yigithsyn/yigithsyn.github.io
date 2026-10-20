@@ -1,6 +1,5 @@
 @media print {
     /* Yazdırma çıktısında yalnızca rapor sayfaları görünür; ekran denetimleri gizlenir. */
-    #page-nav,
     #image-upload,
     #upload-dialog,
     .upload-toast {
@@ -15,22 +14,11 @@
         display: none;
     }
 
-    #pages {
-        /* Ekrandaki flex aralığını ve kenar boşluklarını yazdırma düzeninde kaldır. */
-        display: block;
+    #content {
+        width: auto;
+        margin: 0;
         padding: 0;
-    }
-
-    .page {
-        /* Gölge ekran içindir; her sayfayı yazıcıda ayrı kağıt olarak başlat. */
         box-shadow: none;
-        border: 0;
         border-radius: 0;
-        break-after: page;
     }
-}
-
-@page {
-    /* Kağıt kenar boşlukları JS'in oluşturduğu sayfa ölçüsünde sıfırlanır. */
-    margin: 0;
 }
