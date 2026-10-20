@@ -1,43 +1,55 @@
-const $ = window.jQuery;
-
 // Sayfa API sunucusundan farklı bir kaynaktan açılırsa (file:, Live Server vb.) sunucu adresine git.
 const API = location.port === '3000' ? '' : 'http://localhost:3000';
 const MAX_IMAGE_SIZE = 30 * 1024 * 1024;
 
 function toast(message, isError) {
-    const el = $('<div class="upload-toast" role="status"></div>').text(message).toggleClass('error', !!isError);
-    $('body').append(el);
+    const el = document.createElement('div');
+    el.className = 'upload-toast';
+    el.setAttribute('role', 'status');
+    el.textContent = message;
+    el.classList.toggle('error', !!isError);
+    document.body.append(el);
     setTimeout(() => el.remove(), 3000);
 }
 
 const formatSize = (bytes) => bytes < 1048576 ? (bytes / 1024).toFixed(0) + ' KB' : (bytes / 1048576).toFixed(1) + ' MB';
 
 async function loadList() {
-    const $list = $('#upload-list').empty();
+    const list = document.getElementById('upload-list');
+    list.replaceChildren();
     try {
         const res = await fetch(API + '/api/uploads');
         if (!res.ok) throw new Error();
         const rows = await res.json();
-        $('#upload-empty').prop('hidden', rows.length > 0);
-        const $preview = $('#upload-preview img').prop('hidden', true);
-        const select = ($item, row) => {
-            $list.children().removeClass('selected');
-            $item.addClass('selected');
-            $preview.attr({ src: API + '/' + row.path, alt: row.original_name }).prop('hidden', false);
+        document.getElementById('upload-empty').hidden = rows.length > 0;
+        const preview = document.querySelector('#upload-preview img');
+        preview.hidden = true;
+        const select = (item, row) => {
+            list.querySelectorAll('.selected').forEach(selected => selected.classList.remove('selected'));
+            item.classList.add('selected');
+            preview.src = API + '/' + row.path;
+            preview.alt = row.original_name;
+            preview.hidden = false;
         };
         rows.forEach(row => {
-            const $item = $('<li tabindex="0"><span class="info"><span class="name"></span><small class="meta text-muted"></small></span>' +
+            const item = document.createElement('li');
+            item.tabIndex = 0;
+            item.innerHTML = '<span class="info"><span class="name"></span><small class="meta text-muted"></small></span>' +
                 '<span class="actions"><button type="button" class="btn-outline btn-sm theme-secondary copy-path" title="Yolu kopyala" aria-label="Yolu kopyala">⧉</button>' +
-                '<button type="button" class="btn-outline btn-sm theme-secondary delete-row" title="Kaydı sil" aria-label="Kaydı sil"><i class="bi bi-trash3" aria-hidden="true"></i></button></span></li>');
-            $item.find('.name').text(row.original_name).attr('title', row.original_name);
-            $item.find('.meta').text(formatSize(row.size) + ' · ' + new Date(row.uploaded_at).toLocaleString());
-            $item.on('click keydown', (e) => {
-                if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
-                if ($(e.target).closest('.actions').length) return;
-                e.preventDefault();
-                select($item, row);
-            });
-            $item.find('.copy-path').on('click', async () => {
+                '<button type="button" class="btn-outline btn-sm theme-secondary delete-row" title="Kaydı sil" aria-label="Kaydı sil"><i class="bi bi-trash3" aria-hidden="true"></i></button></span>';
+            const name = item.querySelector('.name');
+            name.textContent = row.original_name;
+            name.title = row.original_name;
+            item.querySelector('.meta').textContent = formatSize(row.size) + ' · ' + new Date(row.uploaded_at).toLocaleString();
+            const selectItem = (event) => {
+                if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+                if (event.target.closest('.actions')) return;
+                if (event.type === 'keydown') event.preventDefault();
+                select(item, row);
+            };
+            item.addEventListener('click', selectItem);
+            item.addEventListener('keydown', selectItem);
+            item.querySelector('.copy-path').addEventListener('click', async () => {
                 const path = (API || location.origin) + '/' + row.path;
                 try {
                     await navigator.clipboard.writeText(path);
@@ -46,21 +58,21 @@ async function loadList() {
                     toast('Kopyalanamadı.', true);
                 }
             });
-            $item.find('.delete-row').on('click', async () => {
+            item.querySelector('.delete-row').addEventListener('click', async () => {
                 if (!confirm(`"${row.original_name}" kaydı silinsin mi? Dosya diskte kalacak.`)) return;
                 try {
                     const res = await fetch(API + '/api/uploads/' + encodeURIComponent(row.id), { method: 'DELETE' });
                     if (!res.ok && res.status !== 404) throw new Error();
-                    loadList();
+                    await loadList();
                 } catch {
                     toast('Kayıt silinemedi.', true);
                 }
             });
-            $list.append($item);
+            list.append(item);
         });
-        if (rows.length) select($list.children().first(), rows[0]);
+        if (rows.length) select(list.firstElementChild, rows[0]);
     } catch {
-        $('#upload-empty').prop('hidden', true);
+        document.getElementById('upload-empty').hidden = true;
         toast('Liste alınamadı.', true);
     }
 }
@@ -85,15 +97,15 @@ export function initializeImageUpload() {
     const dialog = document.getElementById('upload-dialog');
     const input = document.getElementById('upload-input');
 
-    $('#upload-add').on('click', () => input.click());
-    $('#upload-show').on('click', () => {
+    document.getElementById('upload-add').addEventListener('click', () => input.click());
+    document.getElementById('upload-show').addEventListener('click', () => {
         dialog.showModal();
         loadList();
     });
-    $('#upload-close').on('click', () => dialog.close());
-    $(dialog).on('click', (e) => { if (e.target === dialog) dialog.close(); });
+    document.getElementById('upload-close').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
 
-    $(input).on('change', async () => {
+    input.addEventListener('change', async () => {
         const files = [...input.files];
         input.value = '';
         let ok = 0;

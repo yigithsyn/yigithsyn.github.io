@@ -1,38 +1,41 @@
 import { initializeImageUpload } from './image-upload.js';
 
-const $ = window.jQuery;
 const API = location.port === '3000' ? '' : 'http://localhost:3000';
 let selectionRequest = 0;
 let workspaceZoom = 1;
 
-$(function () {
+document.addEventListener('DOMContentLoaded', () => {
     loadContentFiles();
     initializeImageUpload();
-    $('#print').on('click', () => window.print());
-    $('#workspace-zoom-out').on('click', () => setWorkspaceZoom(workspaceZoom - 0.1));
-    $('#workspace-zoom-in').on('click', () => setWorkspaceZoom(workspaceZoom + 0.1));
-    $('#workspace-zoom-reset').on('click', () => setWorkspaceZoom(1));
-    $('#drawer-toggle').on('click', function () {
-        const isExpanded = $(this).attr('aria-expanded') === 'true';
-        $(this).attr('aria-expanded', String(!isExpanded));
-        $(this).find('span').text(isExpanded ? 'Menüyü göster' : 'Menüyü gizle');
-        $('#drawer').prop('hidden', isExpanded);
-        $('#workspace-layout').toggleClass('drawer-closed', isExpanded);
+    document.getElementById('print').addEventListener('click', () => window.print());
+    document.getElementById('workspace-zoom-out').addEventListener('click', () => setWorkspaceZoom(workspaceZoom - 0.1));
+    document.getElementById('workspace-zoom-in').addEventListener('click', () => setWorkspaceZoom(workspaceZoom + 0.1));
+    document.getElementById('workspace-zoom-reset').addEventListener('click', () => setWorkspaceZoom(1));
+    document.getElementById('drawer-toggle').addEventListener('click', (event) => {
+        const button = event.currentTarget;
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', String(!isExpanded));
+        button.querySelector('span').textContent = isExpanded ? 'Menüyü göster' : 'Menüyü gizle';
+        document.getElementById('drawer').hidden = isExpanded;
+        document.getElementById('workspace-layout').classList.toggle('drawer-closed', isExpanded);
     });
 });
 
 function setWorkspaceZoom(zoom) {
     workspaceZoom = Math.min(2, Math.max(0.5, Math.round(zoom * 10) / 10));
     document.getElementById('workspace-layout').style.zoom = String(workspaceZoom);
-    $('#workspace-zoom-level').text(`${Math.round(workspaceZoom * 100)}%`);
-    $('#workspace-zoom-out').prop('disabled', workspaceZoom <= 0.5);
-    $('#workspace-zoom-in').prop('disabled', workspaceZoom >= 2);
-    $('#workspace-zoom-reset').prop('disabled', workspaceZoom === 1);
+    document.getElementById('workspace-zoom-level').textContent = `${Math.round(workspaceZoom * 100)}%`;
+    document.getElementById('workspace-zoom-out').disabled = workspaceZoom <= 0.5;
+    document.getElementById('workspace-zoom-in').disabled = workspaceZoom >= 2;
+    document.getElementById('workspace-zoom-reset').disabled = workspaceZoom === 1;
 }
 
 async function loadContentFiles() {
-    const $list = $('#content-list').empty();
-    const $status = $('#drawer-status').prop('hidden', false).text('Dosyalar yükleniyor...');
+    const list = document.getElementById('content-list');
+    const status = document.getElementById('drawer-status');
+    list.replaceChildren();
+    status.hidden = false;
+    status.textContent = 'Dosyalar yükleniyor...';
 
     try {
         const response = await fetch(API + '/api/content');
@@ -44,35 +47,44 @@ async function loadContentFiles() {
         }
 
         if (!files.length) {
-            $status.text('Content klasöründe HTML dosyası bulunamadı.');
+            status.textContent = 'Content klasöründe HTML dosyası bulunamadı.';
             return;
         }
 
-        $status.empty().prop('hidden', true);
+        status.replaceChildren();
+        status.hidden = true;
         files.forEach((file, index) => {
             const { filename } = file;
             const title = new DOMParser()
                 .parseFromString(file.titleHtml, 'text/html')
                 .body.textContent.trim() || filename;
-            const $button = $('<button type="button" class="drawer-file nav-link"><i class="bi bi-file-earmark-text" aria-hidden="true"></i><span></span></button>');
-            $button.find('span').text(title);
-            $button.attr('title', title);
-            $button.on('click', () => loadContentFile(filename, $button));
-            $list.append($('<li class="nav-item"></li>').append($button));
-            if (index === 0) loadContentFile(filename, $button);
+            const item = document.createElement('li');
+            item.className = 'nav-item';
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'drawer-file nav-link';
+            button.title = title;
+            button.innerHTML = '<i class="bi bi-file-earmark-text" aria-hidden="true"></i><span></span>';
+            button.querySelector('span').textContent = title;
+            button.addEventListener('click', () => loadContentFile(filename, button));
+            item.append(button);
+            list.append(item);
+            if (index === 0) loadContentFile(filename, button);
         });
     } catch (error) {
-        $status.text(error.message === 'Failed to fetch'
+        status.textContent = error.message === 'Failed to fetch'
             ? 'Sunucuya ulaşılamadı. Sunucunun çalıştığını kontrol edin.'
-            : error.message);
+            : error.message;
     }
 }
 
-async function loadContentFile(filename, $button) {
+async function loadContentFile(filename, button) {
     const request = ++selectionRequest;
-    $('#content-list .drawer-file').removeAttr('aria-current');
-    $button.attr('aria-current', 'page');
-    $('#content').empty().attr('aria-busy', 'true');
+    document.querySelectorAll('#content-list .drawer-file').forEach(fileButton => fileButton.removeAttribute('aria-current'));
+    button.setAttribute('aria-current', 'page');
+    const content = document.getElementById('content');
+    content.replaceChildren();
+    content.setAttribute('aria-busy', 'true');
 
     try {
         const response = await fetch(API + '/api/content/' + encodeURIComponent(filename));
@@ -80,13 +92,13 @@ async function loadContentFile(filename, $button) {
         const file = await response.json();
         if (typeof file.content !== 'string') throw new Error('Sunucudan geçersiz dosya içeriği alındı.');
         if (request !== selectionRequest) return;
-        $('#content').html(file.content);
+        content.innerHTML = file.content;
     } catch (error) {
         if (request !== selectionRequest) return;
-        $('#content').text(error.message === 'Failed to fetch'
+        content.textContent = error.message === 'Failed to fetch'
             ? 'Sunucuya ulaşılamadı. Sunucunun çalıştığını kontrol edin.'
-            : error.message);
+            : error.message;
     } finally {
-        if (request === selectionRequest) $('#content').removeAttr('aria-busy');
+        if (request === selectionRequest) content.removeAttribute('aria-busy');
     }
 }
