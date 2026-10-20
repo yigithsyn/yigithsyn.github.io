@@ -1,6 +1,9 @@
 @media print {
     /* Yazdırma çıktısında yalnızca rapor sayfaları görünür; ekran denetimleri gizlenir. */
-    #page-nav {
+    #page-nav,
+    #image-upload,
+    #upload-dialog,
+    .upload-toast {
         display: none;
     }
 
