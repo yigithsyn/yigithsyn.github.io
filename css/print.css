@@ -2,7 +2,9 @@
     /* Yazdırma çıktısında yalnızca rapor sayfaları görünür; ekran denetimleri gizlenir. */
     #image-upload,
     #upload-dialog,
-    .upload-toast {
+    .upload-toast,
+    #drawer,
+    #drawer-toggle {
         display: none;
     }
 
@@ -20,5 +22,11 @@
         padding: 0;
         box-shadow: none;
         border-radius: 0;
+    }
+
+    #workspace-layout {
+        display: block;
+        width: auto;
+        margin: 0;
     }
 }

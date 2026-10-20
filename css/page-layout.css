@@ -30,6 +30,103 @@ body {
     letter-spacing: -.035em;
 }
 
+#drawer-toggle {
+    gap: .4rem;
+}
+
+#workspace-layout {
+    display: grid;
+    grid-template-columns: 17.5rem minmax(0, 1fr);
+    align-items: start;
+    width: 100%;
+    min-height: calc(100vh - 4rem);
+}
+
+#workspace-layout.drawer-closed {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+#drawer {
+    position: sticky;
+    top: 4rem;
+    height: calc(100vh - 4rem);
+    padding: 1rem .75rem;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+}
+
+#drawer[hidden] {
+    display: none;
+}
+
+#drawer h2 {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    margin: 0;
+    padding: .5rem .75rem 1rem;
+    color: #212529;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+#drawer h2 i {
+    color: #0d6efd;
+}
+
+#drawer-status {
+    margin: 0;
+    padding: .5rem .75rem;
+    color: #69748a;
+    font-size: .875rem;
+}
+
+#content-list {
+    display: grid;
+    gap: .15rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+#content-list .nav-item {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.drawer-file {
+    display: grid;
+    grid-template-columns: 1rem minmax(0, 1fr);
+    align-items: start;
+    gap: .65rem;
+    width: 100%;
+    margin: 0;
+    padding: .55rem .75rem;
+    color: #212529;
+    text-align: left;
+    text-indent: 0;
+    background: transparent;
+    border: 0;
+    border-radius: .375rem;
+    overflow-wrap: anywhere;
+}
+
+.drawer-file i {
+    margin-top: .15rem;
+}
+
+.drawer-file span {
+    min-width: 0;
+}
+
+.drawer-file:hover,
+.drawer-file[aria-current="page"] {
+    color: #fff;
+    background: #0d6efd;
+}
+
 #toolbar label {
     color: #69748a;
     font-size: .875rem;
@@ -96,6 +193,7 @@ body {
 #content {
     /* İçerik tek, kesintisiz bir sütunda akar; genişlik ekrana göre uyum sağlar. */
     width: min(100% - 2rem, 60rem);
+    min-width: 0;
     margin: clamp(.75rem, 3vw, 2rem) auto;
     padding: clamp(1rem, 4vw, 3rem);
     background: #fff;
@@ -124,6 +222,19 @@ body {
 }
 
 @media (max-width: 640px) {
+    #workspace-layout,
+    #workspace-layout.drawer-closed {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #drawer {
+        position: static;
+        height: auto;
+        max-height: 15rem;
+        border-right: 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
     #toolbar {
         align-items: flex-start;
         flex-direction: column;

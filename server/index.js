@@ -7,6 +7,7 @@ const crypto = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 
 const ROOT = path.join(__dirname, '..');
+const CONTENT_DIR = path.join(ROOT, 'content');
 const UPLOAD_DIR = path.join(ROOT, 'img', 'upload');
 const PORT = process.env.PORT || 3000;
 const MAX_SIZE = 30 * 1024 * 1024;
@@ -87,6 +88,38 @@ app.use((req, res, next) => {
 });
 
 app.use('/img/upload', express.static(UPLOAD_DIR));
+
+app.get('/api/content', async (req, res) => {
+  const entries = await fs.promises.readdir(CONTENT_DIR, { withFileTypes: true });
+  const files = entries
+    .filter(entry => entry.isFile() && path.extname(entry.name).toLowerCase() === '.html')
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const pages = await Promise.all(files.map(async entry => {
+    const content = await fs.promises.readFile(path.join(CONTENT_DIR, entry.name), 'utf8');
+    const heading = content.match(/<h4\b[^>]*>([\s\S]*?)<\/h4\s*>/i);
+    return { filename: entry.name, titleHtml: heading ? heading[1] : '' };
+  }));
+  res.json(pages);
+});
+
+app.get('/api/content/:filename', async (req, res, next) => {
+  const { filename } = req.params;
+  if (path.basename(filename) !== filename || path.extname(filename).toLowerCase() !== '.html') {
+    return res.status(400).json({ error: 'Geçersiz dosya adı.' });
+  }
+
+  const filePath = path.join(CONTENT_DIR, filename);
+  try {
+    const stat = await fs.promises.lstat(filePath);
+    if (!stat.isFile() || path.dirname(filePath) !== CONTENT_DIR) {
+      return res.status(404).json({ error: 'Dosya bulunamadı.' });
+    }
+    res.json({ name: filename, content: await fs.promises.readFile(filePath, 'utf8') });
+  } catch (err) {
+    if (err.code === 'ENOENT') return res.status(404).json({ error: 'Dosya bulunamadı.' });
+    next(err);
+  }
+});
 
 app.post('/api/upload', upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "'image' alanında dosya gerekli." });
