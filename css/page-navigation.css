@@ -1,27 +1,31 @@
 #page-nav {
     /* Gezinme düğmelerini ekranın sağında, dikey ortada sabit tut. */
     position: fixed;
-    inset-inline-end: .5rem;
+    inset-inline-end: 1rem;
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: .5rem;
+    gap: .45rem;
 }
 
 #page-nav .btn-solid {
-    box-shadow: var(--bs-box-shadow);
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: .9rem;
+    box-shadow: 0 5px 16px rgb(166 86 22 / .24);
 }
 
 .page-counter {
     /* Sayaç genişliğinin rakamlara göre oynamasını önle. */
-    padding: .125rem .5rem;
+    padding: .3rem .65rem;
     font-size: var(--bs-font-size-sm);
+    font-weight: 650;
     font-variant-numeric: tabular-nums;
-    color: var(--bs-fg-body);
-    background-color: var(--bs-bg-body);
+    color: #9b581f;
+    background-color: #fff;
     border-radius: 1rem;
-    box-shadow: var(--bs-box-shadow);
+    box-shadow: 0 3px 12px rgb(47 60 91 / .12);
 }

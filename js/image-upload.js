@@ -28,7 +28,7 @@ async function loadList() {
         rows.forEach(row => {
             const $item = $('<li tabindex="0"><span class="info"><span class="name"></span><small class="meta text-muted"></small></span>' +
                 '<span class="actions"><button type="button" class="btn-outline btn-sm theme-secondary copy-path" title="Yolu kopyala" aria-label="Yolu kopyala">⧉</button>' +
-                '<button type="button" class="btn-outline btn-sm theme-secondary delete-row" title="Kaydı sil" aria-label="Kaydı sil">🗑</button></span></li>');
+                '<button type="button" class="btn-outline btn-sm theme-secondary delete-row" title="Kaydı sil" aria-label="Kaydı sil"><i class="bi bi-trash3" aria-hidden="true"></i></button></span></li>');
             $item.find('.name').text(row.original_name).attr('title', row.original_name);
             $item.find('.meta').text(formatSize(row.size) + ' · ' + new Date(row.uploaded_at).toLocaleString());
             $item.on('click keydown', (e) => {
