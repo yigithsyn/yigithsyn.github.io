@@ -6,6 +6,7 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 
+// Proje yolları ve yükleme sınırları tek yerde tutulur; PORT ortam değişkeniyle değiştirilebilir.
 const ROOT = path.join(__dirname, '..');
 const CONTENT_DIR = path.join(ROOT, 'content');
 const UPLOAD_DIR = path.join(ROOT, 'img', 'upload');
@@ -15,6 +16,7 @@ const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
+// Veritabanı ilk çalıştırmada oluşturulur; hazırlanan sorgular tekrar kullanılmak üzere saklanır.
 const db = new DatabaseSync(path.join(__dirname, 'defter.db'));
 db.exec(`
   CREATE TABLE IF NOT EXISTS uploads (
@@ -37,6 +39,7 @@ const getById = db.prepare('SELECT * FROM uploads WHERE id = ?');
 const remove = db.prepare('DELETE FROM uploads WHERE id = ?');
 const list = db.prepare('SELECT * FROM uploads ORDER BY uploaded_at DESC');
 
+// Kullanıcı dosya adındaki yol bilgilerini kaldırır ve desteklenmeyen karakterleri güvenli hale getirir.
 const safeName = (name) =>
   path.basename(Buffer.from(name, 'latin1').toString('utf8'))
     .replace(/[^\p{L}\p{N}._-]+/gu, '_')
@@ -46,6 +49,7 @@ const safeName = (name) =>
 // yükleme sürerken sayfayı yenileyip isteği keser.
 const STAGING_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'defter-upload-'));
 
+// Geçici ve kalıcı dizinler farklı disklerdeyse rename çalışmaz; EXDEV durumunda kopyalayıp sil.
 const moveFile = (from, to) => {
   try {
     fs.renameSync(from, to);
@@ -65,6 +69,7 @@ const storage = multer.diskStorage({
   },
 });
 
+// Sunucuda hem dosya boyutu hem MIME türü hem de uzantı kontrol edilir.
 const upload = multer({
   storage,
   limits: { fileSize: MAX_SIZE, files: 1 },
@@ -89,6 +94,7 @@ app.use((req, res, next) => {
 
 app.use('/img/upload', express.static(UPLOAD_DIR));
 
+// İçerik listesi yalnızca HTML sayfalarını döndürür; başlık, sayfadaki ilk h4 etiketinden alınır.
 app.get('/api/content', async (req, res) => {
   const entries = await fs.promises.readdir(CONTENT_DIR, { withFileTypes: true });
   const files = entries
@@ -102,6 +108,7 @@ app.get('/api/content', async (req, res) => {
   res.json(pages);
 });
 
+// İstenen dosya adını doğrulayarak içerik klasörü dışına erişimi önle.
 app.get('/api/content/:filename', async (req, res, next) => {
   const { filename } = req.params;
   if (path.basename(filename) !== filename || path.extname(filename).toLowerCase() !== '.html') {
@@ -121,6 +128,7 @@ app.get('/api/content/:filename', async (req, res, next) => {
   }
 });
 
+// Dosyayı önce geçici alandan kalıcı konuma taşı, ardından meta verisini kaydet.
 app.post('/api/upload', upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "'image' alanında dosya gerekli." });
   const f = req.file;
@@ -142,6 +150,7 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
     moveFile(f.path, finalPath);
     insert.run(...Object.values(record));
   } catch (err) {
+    // Veritabanı kaydı başarısızsa tek başına kalmış dosyayı da temizle.
     fs.unlink(f.path, () => {});
     fs.unlink(finalPath, () => {});
     throw err;
@@ -149,6 +158,7 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
   res.status(201).json({ ...record, url: `/${relPath}` });
 });
 
+// Yüklemeler en yeniden eskiye sıralanır; tekil kayıt bulunamazsa 404 döner.
 app.get('/api/uploads', (req, res) => res.json(list.all()));
 app.get('/api/uploads/:id', (req, res) => {
   const row = getById.get(req.params.id);
@@ -161,6 +171,7 @@ app.delete('/api/uploads/:id', (req, res) => {
   result.changes ? res.status(204).end() : res.status(404).json({ error: 'Bulunamadı.' });
 });
 
+// Multer doğrulama/yükleme hatalarını uygun HTTP durumuna çevir; beklenmeyen hataları sunucu günlüğüne yaz.
 app.use((err, req, res, next) => {
   if (req.aborted || res.destroyed) return;
   if (req.file) fs.unlink(req.file.path, () => {});
